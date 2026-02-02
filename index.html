@@ -16,7 +16,6 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-
         body { background: var(--bg); color: var(--dark); overflow-x: hidden; }
 
         /* --- TELA DE LOGIN --- */
@@ -27,10 +26,8 @@
         .login-box {
             background: var(--white); padding: 30px; border-radius: 15px; width: 100%; max-width: 350px; text-align: center;
         }
-        .input-group { margin-bottom: 15px; text-align: left; }
-        .input-group label { display: block; font-size: 12px; margin-bottom: 5px; color: #64748b; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-        .btn-entrar { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; margin-top: 10px; }
+        .btn-entrar { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
 
         /* --- CABEÇALHO --- */
         header {
@@ -38,9 +35,7 @@
             display: flex; justify-content: space-between; align-items: center;
             position: sticky; top: 0; z-index: 900;
         }
-        .logo-area { display: flex; align-items: center; gap: 10px; }
-        .btn-settings { background: none; border: none; color: white; font-size: 30px; cursor: pointer; transition: 0.3s; }
-        .btn-settings:hover { color: var(--primary); transform: rotate(45deg); }
+        .btn-settings { background: none; border: none; color: white; font-size: 30px; cursor: pointer; }
 
         /* --- MENU LATERAL --- */
         .sidebar {
@@ -50,38 +45,40 @@
         .sidebar.active { right: 0; box-shadow: -10px 0 20px rgba(0,0,0,0.5); }
         .nav-item { 
             display: flex; align-items: center; gap: 15px; color: #cbd5e1; 
-            text-decoration: none; padding: 15px; border-radius: 10px; margin-bottom: 10px; font-weight: 500;
+            text-decoration: none; padding: 15px; border-radius: 10px; margin-bottom: 10px;
         }
         .nav-item.active { background: var(--primary); color: white; }
-        .close-menu { position: absolute; top: 15px; left: 15px; color: white; font-size: 24px; cursor: pointer; }
 
-        /* --- CONTEÚDO --- */
+        /* --- TABELA E GAVETAS --- */
         main { padding: 15px; }
-        .card-stats {
-            background: var(--white); padding: 15px; border-radius: 12px;
-            display: flex; justify-content: space-between; margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        
         .table-container { 
             background: var(--white); border-radius: 12px; overflow-x: auto; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        table { width: 100%; border-collapse: collapse; min-width: 750px; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
         th { background: #f8fafc; padding: 14px; text-align: left; font-size: 11px; color: #64748b; text-transform: uppercase; border-bottom: 2px solid #edf2f7; }
-        td { padding: 14px; border-top: 1px solid #f1f5f9; font-size: 14px; }
-
+        td { padding: 12px 14px; border-top: 1px solid #f1f5f9; font-size: 14px; }
+        
         .edit-cell { display: block; width: 100%; padding: 6px; outline: none; border-radius: 4px; border: 1px solid transparent; }
-        .edit-cell:focus { background: #f0f9ff; border: 1px solid var(--primary); }
+        .edit-cell:focus { border-color: var(--primary); background: #f0f9ff; }
 
-        .location-card {
-            background: var(--white); padding: 30px; border-radius: 15px;
-            border-left: 6px solid var(--accent); line-height: 1.8;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        /* Estilo das Gavetas (Selects) nas fileiras */
+        .gaveta-status {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+            transition: 0.2s;
         }
-        .location-card h3 { color: var(--dark); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .status-pago { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+        .status-naopago { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .status-pendente { background: #fef3c7; color: #92400e; border-color: #fde68a; }
 
-        .overlay-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; z-index: 998; }
+        .location-card { background: var(--white); padding: 30px; border-radius: 15px; border-left: 6px solid var(--accent); }
     </style>
 </head>
 <body>
@@ -90,149 +87,123 @@
         <div class="login-box">
             <i class="ph ph-buildings" style="font-size: 50px; color: var(--primary);"></i>
             <h2 style="margin: 15px 0">Acesso SGC</h2>
-            <div class="input-group">
-                <label>Usuário</label>
-                <input type="text" id="user" value="lenny">
-            </div>
-            <div class="input-group">
-                <label>Senha</label>
-                <input type="password" id="pass" value="lenny">
-            </div>
-            <button class="btn-entrar" onclick="validarLogin()">Entrar no Sistema</button>
+            <input type="text" id="user" value="lenny">
+            <input type="password" id="pass" value="lenny">
+            <button class="btn-entrar" onclick="validarLogin()">Entrar</button>
         </div>
     </div>
 
     <header>
-        <div class="logo-area">
+        <div style="display: flex; align-items: center; gap: 10px;">
             <i class="ph ph-shield-check" style="font-size: 26px; color: var(--primary);"></i>
-            <span style="font-weight: bold; font-size: 18px;">PEMBELE</span>
+            <span style="font-weight: bold;">PEMBELE</span>
         </div>
-        <button class="btn-settings" onclick="toggleMenu()" title="Definições">
-            <i class="ph ph-gear-six"></i>
-        </button>
+        <button class="btn-settings" onclick="toggleMenu()"><i class="ph ph-gear-six"></i></button>
     </header>
 
-    <div class="overlay-bg" id="overlay" onclick="toggleMenu()"></div>
     <div class="sidebar" id="sidebar">
-        <i class="ph ph-x close-menu" onclick="toggleMenu()"></i>
-        <div style="text-align: center; margin-bottom: 40px; border-bottom: 1px solid #334155; padding-bottom: 20px;">
-            <i class="ph ph-user-circle-gear" style="font-size: 50px; color: var(--primary);"></i>
-            <p style="color: white; margin-top: 10px; font-weight: bold;">Painel de Controle</p>
-        </div>
-        <a href="#" class="nav-item active" id="nav-unidades" onclick="mudarTela('unidades')"><i class="ph ph-layout"></i> Gestão de Unidades</a>
-        <a href="#" class="nav-item" id="nav-mapa" onclick="mudarTela('mapa')"><i class="ph ph-map-pin"></i> Localização</a>
-        <div style="position: absolute; bottom: 30px; width: calc(100% - 40px);">
-            <a href="#" class="nav-item" onclick="location.reload()" style="color: #fb7185; background: rgba(251, 113, 133, 0.1);"><i class="ph ph-power"></i> Sair do Sistema</a>
-        </div>
+        <i class="ph ph-x" style="color:white; font-size:24px; cursor:pointer" onclick="toggleMenu()"></i>
+        <div style="margin: 30px 0; border-bottom: 1px solid #334155; padding-bottom: 10px; color: white; font-weight: bold;">Painel</div>
+        <a href="#" class="nav-item active" onclick="mudarTela('unidades')"><i class="ph ph-layout"></i> Unidades</a>
+        <a href="#" class="nav-item" onclick="mudarTela('mapa')"><i class="ph ph-map-pin"></i> Localização</a>
+        <a href="#" class="nav-item" onclick="location.reload()" style="color:#fb7185; margin-top:20px"><i class="ph ph-power"></i> Sair</a>
     </div>
 
     <main>
         <div id="units-view">
-            <div class="card-stats">
-                <div><small style="color: #64748b;">Capacidade</small><p style="font-weight: bold; font-size: 18px;">10 Casas</p></div>
-                <div style="text-align: right;"><small style="color: #64748b;">Status</small><p style="color: #22c55e; font-weight: bold;">Sistema Online</p></div>
-            </div>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Nº</th>
+                            <th style="width: 50px;">Nº</th>
+                            <th style="width: 150px;">Estado (Gaveta)</th>
                             <th>Nome do Cliente</th>
                             <th>Apartamento</th>
                             <th>Contacto</th>
                             <th>Renda</th>
-                            <th>Notas / Observações</th>
+                            <th>Notas</th>
                         </tr>
                     </thead>
-                    <tbody id="lista-moradores"></tbody>
+                    <tbody id="lista-moradores">
+                        </tbody>
                 </table>
             </div>
         </div>
 
         <div id="map-view" style="display: none;">
             <div class="location-card">
-                <h3><i class="ph ph-map-pin-line"></i> Endereço Oficial</h3>
-                <p><strong>Condominio Pembele</strong></p>
-                <p>Bairro de Aeroporto "A", Quarteirão 10, nr 391. Rua nossa Senhora de Saúde.</p>
-                <p style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; color: #475569;">
-                    <strong>Ponto de Referência:</strong><br>
-                    Paragem, próximo a escola Secundária Condominiodo Aeroporto (Igreja Católica).
-                </p>
+                <h3>Endereço Oficial</h3>
+                <p>Condominio Pembele - Bairro de Aeroporto "A", Quarteirão 10, nr 391.</p>
             </div>
         </div>
     </main>
 
     <script>
-        // --- CONFIGURAÇÃO SUPABASE ---
         const SB_URL = 'https://dwznzdnvtezhkqzqwrsa.supabase.co';
         const SB_KEY = 'sb_publishable_1wt1hRaXFDFYGfBmoNLGDA_ZnbTniWk';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        // Sistema de Login
         async function validarLogin() {
-            const u = document.getElementById('user').value;
-            const p = document.getElementById('pass').value;
-            if(u === "lenny" && p === "lenny") {
+            if(document.getElementById('user').value === "lenny" && document.getElementById('pass').value === "lenny") {
                 document.getElementById('login-overlay').style.display = 'none';
                 await carregarDados();
-            } else { 
-                alert("Usuário ou Senha incorretos!"); 
-            }
+            } else { alert("Acesso negado!"); }
         }
 
         async function carregarDados() {
             const corpo = document.getElementById('lista-moradores');
-            corpo.innerHTML = '<tr><td colspan="6" style="text-align:center">Carregando dados...</td></tr>';
-
-            // Tenta buscar da tabela 'condominio_unidades'
             let { data, error } = await _supabase.from('condominio_unidades').select('*').order('id', { ascending: true });
-
+            
             if (error) {
-                console.error("Erro ao carregar:", error);
-                alert("Erro ao carregar dados do Supabase. Verifique se a tabela 'condominio_unidades' existe.");
+                alert("Crie a coluna 'status' no seu Supabase!");
                 return;
             }
 
             corpo.innerHTML = '';
-            data.forEach(unidade => {
+            data.forEach(u => {
                 const tr = document.createElement('tr');
+                
+                // Define a classe de cor inicial
+                let corClasse = 'status-pendente';
+                if(u.status === 'Pago') corClasse = 'status-pago';
+                if(u.status === 'Não pago') corClasse = 'status-naopago';
+
                 tr.innerHTML = `
-                    <td style="font-weight: bold; color: var(--primary)">${unidade.id}</td>
-                    <td><span class="edit-cell" contenteditable="true" onblur="salvar(${unidade.id}, 'nome_cliente', this)">${unidade.nome_cliente || ''}</span></td>
-                    <td><span class="edit-cell" contenteditable="true" onblur="salvar(${unidade.id}, 'apartamento', this)">${unidade.apartamento || ''}</span></td>
-                    <td><span class="edit-cell" contenteditable="true" onblur="salvar(${unidade.id}, 'contacto', this)">${unidade.contacto || ''}</span></td>
-                    <td><span class="edit-cell" contenteditable="true" onblur="salvar(${unidade.id}, 'renda', this)">${unidade.renda || ''}</span></td>
-                    <td><span class="edit-cell" contenteditable="true" onblur="salvar(${unidade.id}, 'notas', this)">${unidade.notas || ''}</span></td>
+                    <td style="font-weight:bold">${u.id}</td>
+                    <td>
+                        <select class="gaveta-status ${corClasse}" onchange="salvarStatus(${u.id}, this)">
+                            <option value="Pendente" ${u.status === 'Pendente' ? 'selected' : ''}>🟡 Pendente</option>
+                            <option value="Pago" ${u.status === 'Pago' ? 'selected' : ''}>🟢 Pago</option>
+                            <option value="Não pago" ${u.status === 'Não pago' ? 'selected' : ''}>🔴 Não pago</option>
+                        </select>
+                    </td>
+                    <td><span class="edit-cell" contenteditable="true" onblur="salvarTexto(${u.id}, 'nome_cliente', this)">${u.nome_cliente || ''}</span></td>
+                    <td><span class="edit-cell" contenteditable="true" onblur="salvarTexto(${u.id}, 'apartamento', this)">${u.apartamento || ''}</span></td>
+                    <td><span class="edit-cell" contenteditable="true" onblur="salvarTexto(${u.id}, 'contacto', this)">${u.contacto || ''}</span></td>
+                    <td><span class="edit-cell" contenteditable="true" onblur="salvarTexto(${u.id}, 'renda', this)">${u.renda || ''}</span></td>
+                    <td><span class="edit-cell" contenteditable="true" onblur="salvarTexto(${u.id}, 'notas', this)">${u.notas || ''}</span></td>
                 `;
                 corpo.appendChild(tr);
             });
         }
 
-        async function salvar(id, campo, elemento) {
-            const valor = elemento.innerText;
-            const { error } = await _supabase
-                .from('condominio_unidades')
-                .update({ [campo]: valor })
-                .eq('id', id);
-
-            if (error) console.error("Erro ao salvar:", error.message);
+        async function salvarStatus(id, el) {
+            const val = el.value;
+            // Atualiza a cor da gaveta na hora
+            el.className = 'gaveta-status ' + (val === 'Pago' ? 'status-pago' : (val === 'Não pago' ? 'status-naopago' : 'status-pendente'));
+            await _supabase.from('condominio_unidades').update({ status: val }).eq('id', id);
         }
 
-        function toggleMenu() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            sidebar.classList.toggle('active');
-            overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
+        async function salvarTexto(id, campo, el) {
+            await _supabase.from('condominio_unidades').update({ [campo]: el.innerText }).eq('id', id);
         }
 
-        function mudarTela(tela) {
-            document.getElementById('units-view').style.display = tela === 'unidades' ? 'block' : 'none';
-            document.getElementById('map-view').style.display = tela === 'mapa' ? 'block' : 'none';
-            document.getElementById('nav-unidades').classList.toggle('active', tela === 'unidades');
-            document.getElementById('nav-mapa').classList.toggle('active', tela === 'mapa');
+        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
+        function mudarTela(t) {
+            document.getElementById('units-view').style.display = t === 'unidades' ? 'block' : 'none';
+            document.getElementById('map-view').style.display = t === 'mapa' ? 'block' : 'none';
             toggleMenu();
         }
     </script>
 </body>
 </html>
-
