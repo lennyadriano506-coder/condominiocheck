@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SGC - Gestão Condomínio</title>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #0284c7;
+            --dark: #0f172a;
+            --bg: #f1f5f9;
+            --white: #ffffff;
+            --accent: #e67e22;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        body { background: var(--bg); color: var(--dark); overflow-x: hidden; }
+
+        /* --- TELA DE LOGIN --- */
+        #login-overlay {
+            position: fixed; inset: 0; background: var(--dark); z-index: 1000;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .login-box {
+            background: var(--white); padding: 30px; border-radius: 15px; width: 100%; max-width: 350px; text-align: center;
+        }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; font-size: 12px; margin-bottom: 5px; color: #64748b; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        .btn-entrar { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        /* --- CABEÇALHO --- */
+        header {
+            background: var(--dark); color: white; padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 900;
+        }
+        .logo-area { display: flex; align-items: center; gap: 10px; }
+        .btn-settings { background: none; border: none; color: white; font-size: 30px; cursor: pointer; transition: 0.3s; }
+        .btn-settings:hover { color: var(--primary); transform: rotate(45deg); }
+
+        /* --- MENU LATERAL --- */
+        .sidebar {
+            position: fixed; top: 0; right: -100%; width: 280px; height: 100%;
+            background: var(--dark); z-index: 999; transition: 0.4s ease-in-out; padding: 40px 20px;
+        }
+        .sidebar.active { right: 0; box-shadow: -10px 0 20px rgba(0,0,0,0.5); }
+        .nav-item { 
+            display: flex; align-items: center; gap: 15px; color: #cbd5e1; 
+            text-decoration: none; padding: 15px; border-radius: 10px; margin-bottom: 10px; font-weight: 500;
+        }
+        .nav-item.active { background: var(--primary); color: white; }
+        .close-menu { position: absolute; top: 15px; left: 15px; color: white; font-size: 24px; cursor: pointer; }
+
+        /* --- CONTEÚDO --- */
+        main { padding: 15px; }
+        .card-stats {
+            background: var(--white); padding: 15px; border-radius: 12px;
+            display: flex; justify-content: space-between; margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .table-container { 
+            background: var(--white); border-radius: 12px; overflow-x: auto; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        table { width: 100%; border-collapse: collapse; min-width: 750px; }
+        th { background: #f8fafc; padding: 14px; text-align: left; font-size: 11px; color: #64748b; text-transform: uppercase; border-bottom: 2px solid #edf2f7; }
+        td { padding: 14px; border-top: 1px solid #f1f5f9; font-size: 14px; }
+
+        .edit-cell { display: block; width: 100%; padding: 6px; outline: none; border-radius: 4px; border: 1px solid transparent; }
+        .edit-cell:focus { background: #f0f9ff; border: 1px solid var(--primary); }
+
+        .location-card {
+            background: var(--white); padding: 30px; border-radius: 15px;
+            border-left: 6px solid var(--accent); line-height: 1.8;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .location-card h3 { color: var(--dark); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+
+        .overlay-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; z-index: 998; }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <i class="ph ph-buildings" style="font-size: 50px; color: var(--primary);"></i>
+            <h2 style="margin: 15px 0">Acesso SGC</h2>
+            <div class="input-group">
+                <label>Usuário</label>
+                <input type="text" id="user" value="lenny">
+            </div>
+            <div class="input-group">
+                <label>Senha</label>
+                <input type="password" id="pass" value="lenny">
+            </div>
+            <button class="btn-entrar" onclick="validarLogin()">Entrar no Sistema</button>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo-area">
+            <i class="ph ph-shield-check" style="font-size: 26px; color: var(--primary);"></i>
+            <span style="font-weight: bold; font-size: 18px;">PEMBELE</span>
+        </div>
+        <button class="btn-settings" onclick="toggleMenu()" title="Definições">
+            <i class="ph ph-gear-six"></i>
+        </button>
+    </header>
+
+    <div class="overlay-bg" id="overlay" onclick="toggleMenu()"></div>
+    <div class="sidebar" id="sidebar">
+        <i class="ph ph-x close-menu" onclick="toggleMenu()"></i>
+        <div style="text-align: center; margin-bottom: 40px; border-bottom: 1px solid #334155; padding-bottom: 20px;">
+            <i class="ph ph-user-circle-gear" style="font-size: 50px; color: var(--primary);"></i>
+            <p style="color: white; margin-top: 10px; font-weight: bold;">Painel de Controle</p>
+        </div>
+        <a href="#" class="nav-item active" id="nav-unidades" onclick="mudarTela('unidades')"><i class="ph ph-layout"></i> Gestão de Unidades</a>
+        <a href="#" class="nav-item" id="nav-mapa" onclick="mudarTela('mapa')"><i class="ph ph-map-pin"></i> Localização</a>
+        <div style="position: absolute; bottom: 30px; width: calc(100% - 40px);">
+            <a href="#" class="nav-item" onclick="location.reload()" style="color: #fb7185; background: rgba(251, 113, 133, 0.1);"><i class="ph ph-power"></i> Sair do Sistema</a>
+        </div>
+    </div>
+
+    <main>
+        <div id="units-view">
+            <div class="card-stats">
+                <div><small style="color: #64748b;">Capacidade</small><p style="font-weight: bold; font-size: 18px;">10 Casas</p></div>
+                <div style="text-align: right;"><small style="color: #64748b;">Status</small><p style="color: #22c55e; font-weight: bold;">Sistema Online</p></div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nº</th>
+                            <th>Nome do Cliente</th>
+                            <th>Apartamento</th>
+                            <th>Contacto</th>
+                            <th>Renda</th>
+                            <th>Notas / Observações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-moradores"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="map-view" style="display: none;">
+            <div class="location-card">
+                <h3><i class="ph ph-map-pin-line"></i> Endereço Oficial</h3>
+                <p><strong>Condominio Pembele</strong></p>
+                <p>Bairro de Aeroporto "A", Quarteirão 10, nr 391. Rua nossa Senhora de Saúde.</p>
+                <p style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; color: #475569;">
+                    <strong>Ponto de Referência:</strong><br>
+                    Paragem, próximo a escola Secundária Condominiodo Aeroporto (Igreja Católica).
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- CONFIGURAÇÃO SUPABASE ---
+        const SB_URL = 'https://dwznzdnvtezhkqzqwrsa.supabase.co';
+        const SB_KEY = 'sb_publishable_1wt1hRaXFDFYGfBmoNLGDA_ZnbTniWk';
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        // Sistema de Login
+        async function validarLogin() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            if(u === "lenny" && p === "lenny") {
+                document.getElementById('login-overlay').style.display = 'none';
+                await carregarDados();
+            } else { 
+                alert("Usuário ou Senha incorretos!"); 
+            }
+        }
+
+        async function carregarDados() {
+            const corpo = document.getElementById('lista-moradores');
+            corpo.innerHTML = '<tr><td colspan="6" style="text-align:center">Carregando dados...</td></tr>';
+
+            // Tenta buscar da tabela 'condominio_unidades'
+            let { data, error } = await _supabase.from('condominio_unidades').select('*').order('id', { ascending: true });
+
+            if (error) {
+                console.error("Erro ao carregar:", error);
+                alert("Erro ao carregar dados do Supabase. Verifique se a tabela 'condominio_unidades' existe.");
+                return;
+            }
+
+            corpo.innerHTML = '';
+            data.forEach(unidade => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: bold; color: var(--primary)">${unidade.id}</td>
+                    <td><span class="edit-cell" contenteditable="true" onblur="salvar(${unidade.id}, 'nome_cliente', this)">${unidade.nome_cliente || ''}</span></td>
+                    <td><span class="edit-cell" contenteditable="true" onblur="salvar(${unidade.id}, 'apartamento', this)">${unidade.apartamento || ''}</span></td>
+                    <td><span class="edit-cell" contenteditable="true" onblur="salvar(${unidade.id}, 'contacto', this)">${unidade.contacto || ''}</span></td>
+                    <td><span class="edit-cell" contenteditable="true" onblur="salvar(${unidade.id}, 'renda', this)">${unidade.renda || ''}</span></td>
+                    <td><span class="edit-cell" contenteditable="true" onblur="salvar(${unidade.id}, 'notas', this)">${unidade.notas || ''}</span></td>
+                `;
+                corpo.appendChild(tr);
+            });
+        }
+
+        async function salvar(id, campo, elemento) {
+            const valor = elemento.innerText;
+            const { error } = await _supabase
+                .from('condominio_unidades')
+                .update({ [campo]: valor })
+                .eq('id', id);
+
+            if (error) console.error("Erro ao salvar:", error.message);
+        }
+
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('active');
+            overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
+        }
+
+        function mudarTela(tela) {
+            document.getElementById('units-view').style.display = tela === 'unidades' ? 'block' : 'none';
+            document.getElementById('map-view').style.display = tela === 'mapa' ? 'block' : 'none';
+            document.getElementById('nav-unidades').classList.toggle('active', tela === 'unidades');
+            document.getElementById('nav-mapa').classList.toggle('active', tela === 'mapa');
+            toggleMenu();
+        }
+    </script>
+</body>
+</html>
+
