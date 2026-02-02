@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SGC - Gestão Condomínio</title>
+    <title>SGC - Hausverwaltung</title>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -13,12 +13,12 @@
             --bg: #f1f5f9;
             --white: #ffffff;
             --accent: #e67e22;
+            --danger: #ef4444;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); color: var(--dark); overflow-x: hidden; }
 
-        /* --- TELA DE LOGIN --- */
         #login-overlay {
             position: fixed; inset: 0; background: var(--dark); z-index: 1000;
             display: flex; align-items: center; justify-content: center; padding: 20px;
@@ -26,18 +26,34 @@
         .login-box {
             background: var(--white); padding: 30px; border-radius: 15px; width: 100%; max-width: 350px; text-align: center;
         }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; margin-top: 10px; }
-        .btn-entrar { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; font-size: 12px; margin-bottom: 5px; color: #64748b; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        .btn-entrar { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* --- CABEÇALHO --- */
         header {
             background: var(--dark); color: white; padding: 15px 20px;
             display: flex; justify-content: space-between; align-items: center;
             position: sticky; top: 0; z-index: 900;
         }
-        .btn-settings { background: none; border: none; color: white; font-size: 30px; cursor: pointer; }
+        
+        .header-actions { display: flex; align-items: center; gap: 15px; }
 
-        /* --- MENU LATERAL --- */
+        .lang-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--primary);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .lang-btn:hover { background: var(--primary); }
+
+        .btn-settings { background: none; border: none; color: white; font-size: 28px; cursor: pointer; display: flex; align-items: center; }
+
         .sidebar {
             position: fixed; top: 0; right: -100%; width: 280px; height: 100%;
             background: var(--dark); z-index: 999; transition: 0.4s ease-in-out; padding: 40px 20px;
@@ -49,36 +65,29 @@
         }
         .nav-item.active { background: var(--primary); color: white; }
 
-        /* --- TABELA E GAVETAS --- */
         main { padding: 15px; }
         .table-container { 
             background: var(--white); border-radius: 12px; overflow-x: auto; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1700px; }
         th { background: #f8fafc; padding: 14px; text-align: left; font-size: 11px; color: #64748b; text-transform: uppercase; border-bottom: 2px solid #edf2f7; }
-        td { padding: 12px 14px; border-top: 1px solid #f1f5f9; font-size: 14px; }
+        td { padding: 14px; border-top: 1px solid #f1f5f9; font-size: 14px; }
         
-        .edit-cell { display: block; width: 100%; padding: 6px; outline: none; border-radius: 4px; border: 1px solid transparent; }
-        .edit-cell:focus { border-color: var(--primary); background: #f0f9ff; }
+        .edit-cell { display: block; width: 100%; min-width: 120px; padding: 6px; outline: none; border-radius: 4px; border: 1px solid transparent; }
+        .edit-cell:focus { background: #f0f9ff; border: 1px solid var(--primary); }
 
-        /* Estilo das Gavetas (Selects) nas fileiras */
-        .gaveta-status {
-            width: 100%;
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            outline: none;
-            transition: 0.2s;
+        .gaveta {
+            padding: 5px; border-radius: 5px; border: 1px solid #ddd;
+            font-size: 11px; font-weight: bold; cursor: pointer; outline: none; width: 100px;
         }
-        .status-pago { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
-        .status-naopago { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
-        .status-pendente { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+        .st-Pago { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+        .st-NaoPago { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .st-Pendente { background: #fef3c7; color: #92400e; border-color: #fde68a; }
 
-        .location-card { background: var(--white); padding: 30px; border-radius: 15px; border-left: 6px solid var(--accent); }
+        .btn-limpar { background: none; border: none; color: var(--danger); font-size: 20px; cursor: pointer; }
+
+        .location-card { background: var(--white); padding: 30px; border-radius: 15px; border-left: 6px solid var(--accent); line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -86,27 +95,31 @@
     <div id="login-overlay">
         <div class="login-box">
             <i class="ph ph-buildings" style="font-size: 50px; color: var(--primary);"></i>
-            <h2 style="margin: 15px 0">Acesso SGC</h2>
-            <input type="text" id="user" value="lenny">
-            <input type="password" id="pass" value="lenny">
-            <button class="btn-entrar" onclick="validarLogin()">Entrar</button>
+            <h2 id="t-login-title" style="margin: 15px 0">SGC-Zugang</h2>
+            <div class="input-group"><label id="t-user">Benutzer</label><input type="text" id="user" value="lenny"></div>
+            <div class="input-group"><label id="t-pass">Passwort</label><input type="password" id="pass" value="lenny"></div>
+            <button class="btn-entrar" onclick="validarLogin()" id="t-btn-login">Einloggen</button>
         </div>
     </div>
 
     <header>
         <div style="display: flex; align-items: center; gap: 10px;">
             <i class="ph ph-shield-check" style="font-size: 26px; color: var(--primary);"></i>
-            <span style="font-weight: bold;">PEMBELE</span>
+            <span style="font-weight: bold;" id="t-header">PEMBELE - JAHRESVERWALTUNG</span>
         </div>
-        <button class="btn-settings" onclick="toggleMenu()"><i class="ph ph-gear-six"></i></button>
+        
+        <div class="header-actions">
+            <button class="lang-btn" onclick="toggleLang()" id="btn-lang">PT</button>
+            <button class="btn-settings" onclick="toggleMenu()"><i class="ph ph-gear-six"></i></button>
+        </div>
     </header>
 
     <div class="sidebar" id="sidebar">
         <i class="ph ph-x" style="color:white; font-size:24px; cursor:pointer" onclick="toggleMenu()"></i>
-        <div style="margin: 30px 0; border-bottom: 1px solid #334155; padding-bottom: 10px; color: white; font-weight: bold;">Painel</div>
-        <a href="#" class="nav-item active" onclick="mudarTela('unidades')"><i class="ph ph-layout"></i> Unidades</a>
-        <a href="#" class="nav-item" onclick="mudarTela('mapa')"><i class="ph ph-map-pin"></i> Localização</a>
-        <a href="#" class="nav-item" onclick="location.reload()" style="color:#fb7185; margin-top:20px"><i class="ph ph-power"></i> Sair</a>
+        <div id="t-menu" style="margin: 30px 0; border-bottom: 1px solid #334155; padding-bottom: 10px; color: white; font-weight: bold;">Menü</div>
+        <a href="#" class="nav-item active" onclick="mudarTela('unidades')" id="t-nav-units"><i class="ph ph-layout"></i> Einheiten</a>
+        <a href="#" class="nav-item" onclick="mudarTela('mapa')" id="t-nav-map"><i class="ph ph-map-pin"></i> Standort</a>
+        <a href="#" class="nav-item" onclick="location.reload()" style="color:#fb7185; margin-top:20px" id="t-logout"><i class="ph ph-power"></i> Abmelden</a>
     </div>
 
     <main>
@@ -114,27 +127,26 @@
             <div class="table-container">
                 <table>
                     <thead>
-                        <tr>
-                            <th style="width: 50px;">Nº</th>
-                            <th style="width: 150px;">Estado (Gaveta)</th>
-                            <th>Nome do Cliente</th>
-                            <th>Apartamento</th>
-                            <th>Contacto</th>
-                            <th>Renda</th>
-                            <th>Notas</th>
+                        <tr id="t-table-head">
+                            <th>Nr.</th>
+                            <th>Kundenname</th>
+                            <th>Jan</th><th>Feb</th><th>Mär</th><th>Apr</th><th>Mai</th><th>Jun</th>
+                            <th>Jul</th><th>Aug</th><th>Sep</th><th>Okt</th><th>Nov</th><th>Dez</th>
+                            <th>Wohnung</th>
+                            <th>Kontakt</th>
+                            <th>Miete</th>
+                            <th>Notizen</th>
+                            <th>Aktionen</th>
                         </tr>
                     </thead>
-                    <tbody id="lista-moradores">
-                        </tbody>
+                    <tbody id="lista-moradores"></tbody>
                 </table>
             </div>
         </div>
 
         <div id="map-view" style="display: none;">
-            <div class="location-card">
-                <h3>Endereço Oficial</h3>
-                <p>Condominio Pembele - Bairro de Aeroporto "A", Quarteirão 10, nr 391.</p>
-            </div>
+            <div class="location-card" id="t-map-card">
+                </div>
         </div>
     </main>
 
@@ -142,60 +154,111 @@
         const SB_URL = 'https://dwznzdnvtezhkqzqwrsa.supabase.co';
         const SB_KEY = 'sb_publishable_1wt1hRaXFDFYGfBmoNLGDA_ZnbTniWk';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
+        const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set_','out_','nov','dez'];
+        
+        let currentLang = 'de';
+        const trans = {
+            de: {
+                btn: "PT", login: "SGC-Zugang", user: "Benutzer", pass: "Passwort", bLogin: "Einloggen",
+                head: "PEMBELE - JAHRESVERWALTUNG", menu: "Menü", units: "Einheiten", map: "Standort", logout: "Abmelden",
+                th: ["Nr.", "Kundenname", "Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez", "Wohnung", "Kontakt", "Miete", "Notizen", "Aktionen"],
+                st: ["Ausstehend", "Bezahlt", "Nicht bezahlt"], 
+                mapText: "<h3>Standort</h3><p><strong>Kondominium Pembele</strong>/ Bairro Aeroporto 'A', Quartier 10, Nr. 391, Rua Nossa Senhora de Saúde. Paragem, neben der Sekundarschule des Flughafens (Katholische Kirche).</p>",
+                confirm: "Daten löschen?"
+            },
+            pt: {
+                btn: "DE", login: "Acesso SGC", user: "Usuário", pass: "Senha", bLogin: "Entrar",
+                head: "PEMBELE - GESTÃO ANUAL", menu: "Menu", units: "Unidades", map: "Localização", logout: "Sair",
+                th: ["Nº", "Nome do Cliente", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez", "Apartamento", "Contacto", "Renda", "Notas", "Ações"],
+                st: ["Pendente", "Pago", "Não pago"], 
+                mapText: "<h3>Localização Correcta</h3><p><strong>Condomínio Pembele</strong>/ Bairro Aeroporto 'A', Quarteirão 10, Nr. 391, Rua Nossa Senhora de Saúde. Paragem, ao lado da Escola Secundária do Aeroporto (Igreja Católica).</p>",
+                confirm: "Deseja limpar todos os dados do cliente?"
+            }
+        };
+
+        // Inicializa o endereço no carregamento
+        document.getElementById('t-map-card').innerHTML = trans.de.mapText;
+
+        function toggleLang() {
+            currentLang = currentLang === 'de' ? 'pt' : 'de';
+            const l = trans[currentLang];
+            document.getElementById('btn-lang').innerText = l.btn;
+            document.getElementById('t-login-title').innerText = l.login;
+            document.getElementById('t-user').innerText = l.user;
+            document.getElementById('t-pass').innerText = l.pass;
+            document.getElementById('t-btn-login').innerText = l.bLogin;
+            document.getElementById('t-header').innerText = l.head;
+            document.getElementById('t-menu').innerText = l.menu;
+            document.getElementById('t-nav-units').innerHTML = `<i class="ph ph-layout"></i> ${l.units}`;
+            document.getElementById('t-nav-map').innerHTML = `<i class="ph ph-map-pin"></i> ${l.map}`;
+            document.getElementById('t-logout').innerHTML = `<i class="ph ph-power"></i> ${l.logout}`;
+            document.getElementById('t-map-card').innerHTML = l.mapText;
+            
+            let thr = '';
+            l.th.forEach(h => thr += `<th>${h}</th>`);
+            document.getElementById('t-table-head').innerHTML = thr;
+            carregarDados();
+        }
 
         async function validarLogin() {
             if(document.getElementById('user').value === "lenny" && document.getElementById('pass').value === "lenny") {
                 document.getElementById('login-overlay').style.display = 'none';
                 await carregarDados();
-            } else { alert("Acesso negado!"); }
+            } else { alert(currentLang === 'de' ? "Zugriff verweigert!" : "Acesso negado!"); }
         }
 
         async function carregarDados() {
             const corpo = document.getElementById('lista-moradores');
             let { data, error } = await _supabase.from('condominio_unidades').select('*').order('id', { ascending: true });
-            
-            if (error) {
-                alert("Crie a coluna 'status' no seu Supabase!");
-                return;
-            }
-
+            if (error) return;
             corpo.innerHTML = '';
             data.forEach(u => {
                 const tr = document.createElement('tr');
+                tr.setAttribute('id', `linha-${u.id}`);
+                let colunasMeses = '';
                 
-                // Define a classe de cor inicial
-                let corClasse = 'status-pendente';
-                if(u.status === 'Pago') corClasse = 'status-pago';
-                if(u.status === 'Não pago') corClasse = 'status-naopago';
+                meses.forEach(m => {
+                    const statusVal = u[m] || 'Pendente';
+                    colunasMeses += `
+                        <td>
+                            <select class="gaveta st-${statusVal.replace(' ', '')}" onchange="salvarMes(${u.id}, '${m}', this)">
+                                <option value="Pendente" ${statusVal === 'Pendente'?'selected':''}>🟡 ${trans[currentLang].st[0]}</option>
+                                <option value="Pago" ${statusVal === 'Pago'?'selected':''}>🟢 ${trans[currentLang].st[1]}</option>
+                                <option value="Não pago" ${statusVal === 'Não pago'?'selected':''}>🔴 ${trans[currentLang].st[2]}</option>
+                            </select>
+                        </td>`;
+                });
 
                 tr.innerHTML = `
-                    <td style="font-weight:bold">${u.id}</td>
-                    <td>
-                        <select class="gaveta-status ${corClasse}" onchange="salvarStatus(${u.id}, this)">
-                            <option value="Pendente" ${u.status === 'Pendente' ? 'selected' : ''}>🟡 Pendente</option>
-                            <option value="Pago" ${u.status === 'Pago' ? 'selected' : ''}>🟢 Pago</option>
-                            <option value="Não pago" ${u.status === 'Não pago' ? 'selected' : ''}>🔴 Não pago</option>
-                        </select>
-                    </td>
+                    <td>${u.id}</td>
                     <td><span class="edit-cell" contenteditable="true" onblur="salvarTexto(${u.id}, 'nome_cliente', this)">${u.nome_cliente || ''}</span></td>
+                    ${colunasMeses}
                     <td><span class="edit-cell" contenteditable="true" onblur="salvarTexto(${u.id}, 'apartamento', this)">${u.apartamento || ''}</span></td>
                     <td><span class="edit-cell" contenteditable="true" onblur="salvarTexto(${u.id}, 'contacto', this)">${u.contacto || ''}</span></td>
                     <td><span class="edit-cell" contenteditable="true" onblur="salvarTexto(${u.id}, 'renda', this)">${u.renda || ''}</span></td>
                     <td><span class="edit-cell" contenteditable="true" onblur="salvarTexto(${u.id}, 'notas', this)">${u.notas || ''}</span></td>
+                    <td><button class="btn-limpar" onclick="limparCliente(${u.id})"><i class="ph ph-trash"></i></button></td>
                 `;
                 corpo.appendChild(tr);
             });
         }
 
-        async function salvarStatus(id, el) {
-            const val = el.value;
-            // Atualiza a cor da gaveta na hora
-            el.className = 'gaveta-status ' + (val === 'Pago' ? 'status-pago' : (val === 'Não pago' ? 'status-naopago' : 'status-pendente'));
-            await _supabase.from('condominio_unidades').update({ status: val }).eq('id', id);
+        async function salvarMes(id, mes, el) {
+            await _supabase.from('condominio_unidades').update({ [mes]: el.value }).eq('id', id);
+            el.className = `gaveta st-${el.value.replace(' ', '')}`;
         }
 
         async function salvarTexto(id, campo, el) {
             await _supabase.from('condominio_unidades').update({ [campo]: el.innerText }).eq('id', id);
+        }
+
+        async function limparCliente(id) {
+            if(confirm(trans[currentLang].confirm)) {
+                const r = { nome_cliente:'', apartamento:'', contacto:'', renda:'', notas:'' };
+                meses.forEach(m => r[m] = 'Pendente');
+                await _supabase.from('condominio_unidades').update(r).eq('id', id);
+                carregarDados();
+            }
         }
 
         function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
