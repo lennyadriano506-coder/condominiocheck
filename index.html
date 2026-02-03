@@ -96,8 +96,8 @@
         <div class="login-box">
             <i class="ph ph-buildings" style="font-size: 50px; color: var(--primary);"></i>
             <h2 id="t-login-title" style="margin: 15px 0">SGC-Zugang</h2>
-            <div class="input-group"><label id="t-user">Benutzer</label><input type="text" id="user" value="lenny"></div>
-            <div class="input-group"><label id="t-pass">Passwort</label><input type="password" id="pass" value="lenny"></div>
+            <div class="input-group"><label id="t-user">Benutzer</label><input type="text" id="user" value="usuário"></div>
+            <div class="input-group"><label id="t-pass">Passwort</label><input type="password" id="pass" value="senha"></div>
             <button class="btn-entrar" onclick="validarLogin()" id="t-btn-login">Einloggen</button>
         </div>
     </div>
@@ -201,7 +201,7 @@
         }
 
         async function validarLogin() {
-            if(document.getElementById('user').value === "lenny" && document.getElementById('pass').value === "lenny") {
+            if(document.getElementById('user').value === "Mafuta" && document.getElementById('pass').value === "1234") {
                 document.getElementById('login-overlay').style.display = 'none';
                 await carregarDados();
             } else { alert(currentLang === 'de' ? "Zugriff verweigert!" : "Acesso negado!"); }
