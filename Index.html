@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Condomínios Malate - Gestão</title>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { 
+            --primary: #10b981; 
+            --primary-dark: #059669;
+            --bg: #f0fdf4; 
+            --white: #ffffff; 
+            --text: #1f2937; 
+            --border: #d1fae5; 
+            --danger: #f43f5e;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        body { background: var(--bg); color: var(--text); padding-bottom: 50px; }
+
+        /* Login */
+        #login-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: var(--white); padding: 40px; border-radius: 20px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 20px 25px rgba(0,0,0,0.1); }
+        .login-input { width: 100%; padding: 14px; margin-top: 10px; border: 2px solid var(--border); border-radius: 12px; font-size: 16px; }
+
+        /* Header */
+        header { background: var(--white); padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 99; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .logo-text { font-weight: 800; color: var(--primary-dark); font-size: 22px; letter-spacing: -0.5px; }
+
+        /* Main Content */
+        main { padding: 20px 5%; }
+        .prop-section { margin-top: 40px; }
+        .prop-title { 
+            background: var(--primary); color: white; padding: 12px 25px; 
+            border-radius: 12px 12px 0 0; font-weight: 800; font-size: 18px;
+            display: inline-block; box-shadow: 4px 0 10px rgba(16, 185, 129, 0.1);
+        }
+        .table-card { 
+            background: var(--white); border-radius: 0 15px 15px 15px; padding: 20px; 
+            border: 1px solid var(--border); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            overflow-x: auto; 
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 1650px; }
+        th { text-align: left; padding: 14px; background: #f9fafb; font-size: 11px; color: #6b7280; text-transform: uppercase; border-bottom: 2px solid var(--bg); }
+        td { padding: 12px; border-bottom: 1px solid var(--bg); font-size: 14px; }
+
+        /* Edição e Status */
+        .edit-cell { display: block; padding: 6px; border-radius: 6px; min-width: 100px; transition: 0.2s; }
+        .edit-cell:focus { background: #ecfdf5; outline: 2px solid var(--primary); }
+        
+        .gaveta { padding: 7px; border-radius: 8px; border: 1px solid var(--border); font-size: 12px; font-weight: bold; cursor: pointer; outline: none; }
+        .st-Pago { background: #d1fae5; color: #065f46; }
+        .st-NaoPago { background: #ffe4e6; color: #9f1239; }
+        .st-Pendente { background: #fef3c7; color: #92400e; }
+
+        .btn-logout { background: none; border: none; color: var(--danger); cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <i class="ph ph-buildings" style="font-size: 48px; color: var(--primary);"></i>
+            <h2 style="margin: 15px 0; color: var(--primary-dark);">Condomínios Malate</h2>
+            <input type="text" id="user" value="" class="login-input" placeholder="Usuário">
+            <input type="password" id="pass" value="" class="login-input" placeholder="Senha">
+            <button onclick="realizarLogin()" style="width:100%; margin-top:20px; padding:16px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer; font-size:16px;">Entrar no Sistema</button>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo-text">CONDOMÍNIOS MALATE</div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <button onclick="alternarIdioma()" id="btn-lang" style="background:var(--primary); color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">PT</button>
+            <button onclick="location.reload()" class="btn-logout"><i class="ph ph-power" style="font-size: 26px;"></i></button>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <div style="text-align:center; margin-top:50px; color:#6b7280;">Carregando condomínios...</div>
+    </main>
+
+    <script>
+        // Credenciais do Supabase
+        const SB_URL = 'https://dwznzdnvtezhkqzqwrsa.supabase.co'; 
+        const SB_KEY = 'sb_publishable_ZajKS3fZjhbLeGLdo-2IsA_sQgarlui';
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set_','out_','nov','dez'];
+        let idiomaAtual = 'pt';
+
+        const textos = {
+            pt: { th: ["ID", "Nome do Cliente", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez", "Apt", "Contacto", "Renda", "Notas"], st: ["Pendente", "Pago", "Não pago"] },
+            de: { th: ["ID", "Kundenname", "Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez", "Whg", "Kontakt", "Miete", "Notizen"], st: ["Ausstehend", "Bezahlt", "Nicht bezahlt"] }
+        };
+
+        async function realizarLogin() {
+            if(document.getElementById('user').value === 'Malate' && document.getElementById('pass').value === '1234') {
+                document.getElementById('login-overlay').style.display = 'none';
+                await carregarTabelas();
+            } else { alert('Acesso negado!'); }
+        }
+
+        async function carregarTabelas() {
+            const container = document.getElementById('main-content');
+            let { data, error } = await _supabase.from('condominio_verde').select('*').order('id', { ascending: true });
+
+            if (error) {
+                container.innerHTML = `<div style="color:red; text-align:center;">Erro: Certifique-se que a tabela 'condominio_verde' existe e o RLS está desativado.</div>`;
+                return;
+            }
+
+            // Agrupa os dados por propriedade
+            const grupos = data.reduce((acc, item) => {
+                if (!acc[item.propriedade]) acc[item.propriedade] = [];
+                acc[item.propriedade].push(item);
+                return acc;
+            }, {});
+
+            container.innerHTML = '';
+
+            for (const nomeProp in grupos) {
+                const section = document.createElement('div');
+                section.className = 'prop-section';
+                
+                let ths = '';
+                textos[idiomaAtual].th.forEach(t => ths += `<th>${t}</th>`);
+
+                section.innerHTML = `
+                    <div class="prop-title">${nomeProp}</div>
+                    <div class="table-card">
+                        <table>
+                            <thead><tr>${ths}</tr></thead>
+                            <tbody id="lista-${nomeProp.replace(/\s/g, '')}"></tbody>
+                        </table>
+                    </div>
+                `;
+                container.appendChild(section);
+
+                const tbody = document.getElementById(`lista-${nomeProp.replace(/\s/g, '')}`);
+                
+                grupos[nomeProp].forEach(u => {
+                    const tr = document.createElement('tr');
+                    let colMeses = '';
+                    meses.forEach(m => {
+                        const status = u[m] || 'Pendente';
+                        colMeses += `<td><select class="gaveta st-${status.replace(' ', '')}" onchange="atualizarMes(${u.id}, '${m}', this)">
+                            <option value="Pendente" ${status==='Pendente'?'selected':''}>🟡 ${textos[idiomaAtual].st[0]}</option>
+                            <option value="Pago" ${status==='Pago'?'selected':''}>🟢 ${textos[idiomaAtual].st[1]}</option>
+                            <option value="Não pago" ${status==='Não pago'?'selected':''}>🔴 ${textos[idiomaAtual].st[2]}</option>
+                        </select></td>`;
+                    });
+
+                    tr.innerHTML = `
+                        <td style="font-weight:bold; color:var(--primary-dark)">${u.id}</td>
+                        <td><span class="edit-cell" contenteditable="true" onblur="salvarDado(${u.id}, 'nome_cliente', this)">${u.nome_cliente || ''}</span></td>
+                        ${colMeses}
+                        <td><span class="edit-cell" contenteditable="true" onblur="salvarDado(${u.id}, 'apartamento', this)">${u.apartamento || ''}</span></td>
+                        <td><span class="edit-cell" contenteditable="true" onblur="salvarDado(${u.id}, 'contacto', this)">${u.contacto || ''}</span></td>
+                        <td><span class="edit-cell" contenteditable="true" onblur="salvarDado(${u.id}, 'renda', this)">${u.renda || ''}</span></td>
+                        <td><span class="edit-cell" contenteditable="true" onblur="salvarDado(${u.id}, 'notas', this)">${u.notas || ''}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        async function atualizarMes(id, mes, el) {
+            await _supabase.from('condominio_verde').update({ [mes]: el.value }).eq('id', id);
+            el.className = `gaveta st-${el.value.replace(' ', '')}`;
+        }
+
+        async function salvarDado(id, campo, el) {
+            await _supabase.from('condominio_verde').update({ [campo]: el.innerText }).eq('id', id);
+        }
+
+        function alternarIdioma() {
+            idiomaAtual = (idiomaAtual === 'pt') ? 'de' : 'pt';
+            document.getElementById('btn-lang').innerText = (idiomaAtual === 'pt') ? 'DE' : 'PT';
+            carregarTabelas();
+        }
+    </script>
+</body>
+</html>
+
